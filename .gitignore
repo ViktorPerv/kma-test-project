@@ -1,0 +1,14 @@
+# local git files
+.git
+
+# phpstorm project files
+.idea
+
+# composer vendor dir
+/vendor
+
+# composer itself is not needed
+composer.phar
+
+.env
+xdebug.log

@@ -1,0 +1,136 @@
+version: '3.2'
+
+services:
+  php:
+    platform: ${BUILDPLATFORM}
+    build:
+      context: ./docker/php
+      args:
+        PHP_ENABLE_XDEBUG: ${PHP_ENABLE_XDEBUG}
+    working_dir: /app
+    volumes:
+      - ./docker/php/base.ini:/usr/local/etc/php/conf.d/base.ini
+      - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ~/.composer-docker/cache:/var/www/.composer/cache:delegated
+      - ./:/app:delegated
+      - ./docker/php/docker-php-entrypoint:/usr/local/bin/docker-php-entrypoint
+      - ./docker/php/.bashrc:/var/www/.bashrc
+    environment:
+      PHP_USER_ID: ${PHP_USER_ID}
+      PHP_ENABLE_XDEBUG: ${PHP_ENABLE_XDEBUG}
+      TZ: ${TIMEZONE}
+      DEBIAN_FRONTEND: noninteractive
+      PHP_IDE_CONFIG: serverName=Docker
+    depends_on:
+      - db
+    profiles:
+      - core
+    restart: ${RESTART}
+
+  nginx:
+    image: nginx:1.15-alpine
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./:/app:delegated
+    depends_on:
+      - php
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.nginx-kma.rule: "Host(`${DOMAIN}`)"
+    networks:
+      - default
+      - web
+    profiles:
+      - core
+
+  supervisor:
+    platform: ${BUILDPLATFORM}
+    build:
+      context: ./docker/supervisor
+      args:
+        PHP_ENABLE_XDEBUG: ${PHP_ENABLE_XDEBUG}
+    working_dir: /app
+    volumes:
+      - ./docker/php/base.ini:/usr/local/etc/php/conf.d/base.ini
+      - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ~/.composer-docker/cache:/var/www/.composer/cache:delegated
+      - ./:/app:delegated
+      - ./docker/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf:ro
+    environment:
+      PHP_USER_ID: ${PHP_USER_ID}
+      PHP_ENABLE_XDEBUG: ${PHP_ENABLE_XDEBUG}
+      TZ: ${TIMEZONE}
+      DEBIAN_FRONTEND: noninteractive
+      PHP_IDE_CONFIG: serverName=Docker
+    depends_on:
+      - db
+      - rabbitmq
+    profiles:
+      - core
+    restart: ${RESTART}
+
+  db:
+    image: mysql:8.0.32
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=250
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: ${TIMEZONE}
+      DEBIAN_FRONTEND: noninteractive
+    volumes:
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/db/initdb.d:/docker-entrypoint-initdb.d
+      - ./docker/db/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+      - db_data:/var/lib/mysql
+    ports:
+      - 127.0.0.1:${DOCKER_DB_PORT}:3306
+    profiles:
+      - core
+
+  rabbitmq:
+    platform: ${BUILDPLATFORM}
+    image: "rabbitmq:3.11.11-management"
+    hostname: rabbitmq
+    volumes:
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - rabbitmq_data:/var/lib/rabbitmq
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.rabbitmq-kma.loadbalancer.server.port: "15672"
+      traefik.http.routers.rabbitmq-kma.rule: "Host(`rabbit.${DOMAIN}`)"
+      traefik.http.routers.rabbitmq-kma.tls: "false"
+      traefik.http.routers.rabbitmq-kma.service: "rabbitmq-kma"
+    networks:
+      - default
+      - web
+    profiles:
+      - core
+    restart: ${RESTART}
+
+  phpmyadmin:
+    platform: ${BUILDPLATFORM}
+    image: phpmyadmin:latest
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.phpmyadmin-kma.rule: "Host(`pma.${DOMAIN}`)"
+    environment:
+      PMA_HOST: db
+      PMA_ABSOLUTE_URI: "/pma"
+      TZ: ${TIMEZONE}
+      DEBIAN_FRONTEND: noninteractive
+    depends_on:
+      - db
+    profiles:
+      - dev
+    restart: ${RESTART}
+
+volumes:
+  db_data:
+  rabbitmq_data:
+
+networks:
+  web:
+    external: true
