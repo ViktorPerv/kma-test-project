@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Http\Response;
-use App\Models\Content;
 use App\Repository\ContentRepository;
 
 class HomeController
 {
     public function index(): Response
     {
-        $data = (new Content())->getAllContent();
+        $data = (new ContentRepository())->getAllContent();
 
         $content = '<html>
             <head><style>

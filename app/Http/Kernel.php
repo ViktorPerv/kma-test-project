@@ -40,7 +40,7 @@ class Kernel
             case Dispatcher::FOUND:
                 [$controller, $method] = $routeInfo[1];
                 $vars = $routeInfo[2];
-                return call_user_func_array([new $controller, $method], $vars);
+                return call_user_func_array([new $controller(), $method], $vars);
                 break;
         }
 

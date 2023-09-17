@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Repository;
 
 use App\Http\Kernel;
 use App\Db;

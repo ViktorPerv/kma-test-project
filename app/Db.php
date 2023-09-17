@@ -13,7 +13,8 @@ class Db
 {
     private PDO $pdo;
 
-    public function __construct() {
+    public function __construct()
+    {
         try {
             $this->pdo = new \PDO($_ENV['DB_DSN'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
