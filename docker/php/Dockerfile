@@ -1,22 +1,22 @@
-FROM yiisoftware/yii2-php:7.4-fpm
+FROM php:8.2-fpm
 
-RUN date
-
-RUN apt-get update && apt-get install -y libz-dev libmemcached-dev locales unzip git \
-    && pecl install memcached \
-    && docker-php-ext-enable memcached \
+# Installing dependencies for the PHP modules
+RUN apt-get update && \
+    apt-get install -y zip curl libcurl3-dev libzip-dev libpng-dev libonig-dev libxml2-dev locales unzip git \
+    && pecl install xdebug \
     && docker-php-ext-install sockets \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /tmp/pear
+    # libonig-dev is needed for oniguruma which is needed for mbstring
 
-#установка локали
-RUN echo 'ru_RU.UTF-8 UTF-8' >> /etc/locale.gen && \
-    echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen  && \
-    locale-gen en_US en_US.UTF-8 ru_RU ru_RU.UTF-8 && \
-    dpkg-reconfigure locales
+# Installing additional PHP modules
+RUN docker-php-ext-install curl gd mbstring mysqli pdo pdo_mysql xml
 
 ENV LANG en_US.UTF-8
+
+# Install Composer so it's available
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 ###########################################################################
 # xDebug:

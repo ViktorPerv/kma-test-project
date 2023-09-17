@@ -42,6 +42,7 @@ services:
       - web
     profiles:
       - core
+    restart: ${RESTART}
 
   supervisor:
     platform: ${BUILDPLATFORM}
@@ -70,20 +71,17 @@ services:
     restart: ${RESTART}
 
   db:
-    image: mysql:8.0.32
-    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=250
+    image: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
       TZ: ${TIMEZONE}
       DEBIAN_FRONTEND: noninteractive
     volumes:
       - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./docker/db/initdb.d:/docker-entrypoint-initdb.d
-      - ./docker/db/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/mariadb
     ports:
       - 127.0.0.1:${DOCKER_DB_PORT}:3306
     profiles:
@@ -118,9 +116,11 @@ services:
       traefik.http.routers.phpmyadmin-kma.rule: "Host(`pma.${DOMAIN}`)"
     environment:
       PMA_HOST: db
-      PMA_ABSOLUTE_URI: "/pma"
       TZ: ${TIMEZONE}
       DEBIAN_FRONTEND: noninteractive
+    networks:
+      - default
+      - web
     depends_on:
       - db
     profiles:
