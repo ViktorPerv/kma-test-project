@@ -15,10 +15,11 @@ class ContentService
      */
     public function addContent(UrlTransferDto $transferDto): void
     {
-        $contentLength = $this->sendRequest($transferDto->url);
-        $repository = new ContentRepository();
-        $repository->create($contentLength, $transferDto->timestamp);
-
+        if ($url = filter_var(trim($transferDto->url), FILTER_VALIDATE_URL)) {
+            $contentLength = $this->sendRequest($url);
+            $repository = new ContentRepository();
+            $repository->create($contentLength, $transferDto->timestamp);
+        }
     }
 
     private function sendRequest(string $url): int

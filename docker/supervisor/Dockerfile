@@ -2,7 +2,7 @@ FROM php:8.2-fpm
 
 # Installing dependencies for the PHP modules
 RUN apt-get update && \
-    apt-get install -y zip curl libcurl3-dev libzip-dev libpng-dev libonig-dev libxml2-dev locales unzip git \
+    apt-get install -y zip curl libcurl3-dev libzip-dev libpng-dev libonig-dev libxml2-dev locales unzip git supervisor \
     && pecl install xdebug \
     && docker-php-ext-install sockets \
     && apt-get autoremove -y \
@@ -11,7 +11,7 @@ RUN apt-get update && \
     # libonig-dev is needed for oniguruma which is needed for mbstring
 
 # Installing additional PHP modules
-RUN docker-php-ext-install curl gd mbstring mysqli pdo pdo_mysql xml
+RUN docker-php-ext-install curl gd mbstring mysqli pdo pdo_mysql xml pcntl
 
 ENV LANG en_US.UTF-8
 

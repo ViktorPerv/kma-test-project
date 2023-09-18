@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http;
 
-use App\Db;
+use App\db\Db;
+use App\db\RabbitMq;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-
 use function FastRoute\simpleDispatcher;
 
 class Kernel
 {
     private static Db $db;
-    public function handle(Request $request): Response
+    private static RabbitMq $connection;
+
+    public function __construct()
     {
         static::$db = new Db();
+        static::$connection = new RabbitMq();
+    }
 
+    public function handle(Request $request): Response
+    {
         $dispatch = simpleDispatcher(function (RouteCollector $collector) {
 
             $routes = include BASE_PATH . '/routes/web.php';
@@ -51,6 +57,11 @@ class Kernel
     public static function db(): Db
     {
         return static::$db;
+    }
+
+    public static function rabbitMq(): RabbitMq
+    {
+        return static::$connection;
     }
 
 }

@@ -16,7 +16,7 @@ class ContentRepository extends Model
     /**
      * @throws \Exception
      */
-    public function create(int $length, string $timestamp): void
+    public function create(int $length, int $timestamp): void
     {
         try {
             $sql = 'INSERT INTO content (content, timestamp) VALUES (:length, :timestamp)';

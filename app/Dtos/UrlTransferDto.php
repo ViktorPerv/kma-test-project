@@ -8,7 +8,7 @@ class UrlTransferDto
 {
     public function __construct(
         public string $url,
-        public string $timestamp
+        public int $timestamp
     ) {
     }
 }

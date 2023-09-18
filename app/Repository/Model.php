@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\db\Db;
 use App\Http\Kernel;
-use App\Db;
 
 abstract class Model
 {

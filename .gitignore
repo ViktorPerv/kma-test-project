@@ -12,3 +12,5 @@ composer.phar
 
 .env
 xdebug.log
+
+*.txt
