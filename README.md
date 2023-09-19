@@ -94,3 +94,23 @@ make up
 
 ```
 make composer-install
+```
+
+## Тестирование
+
+```
+make sender
+```
+
+Берёт построчно данные из urls.txt и отправляет в очередь.
+Данные в очереди можно посмотреть в [rabbit.kma.localhost](http://rabbit.kma.localhost/)
+
+
+```
+make receive
+```
+Данные берутся из очереди и кладутся в БД
+Данные в БД можно посмотреть через Phpadmin - [pma.kma.localhost](http://pma.kma.localhost/)
+
+
+Данные в виде таблицы доступны через веб интерфейс по адрессу: [kma.localhost](http://kma.localhost/)

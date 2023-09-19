@@ -21,6 +21,8 @@ services:
       TZ: ${TIMEZONE}
       DEBIAN_FRONTEND: noninteractive
       PHP_IDE_CONFIG: serverName=Docker
+    networks:
+      - default
     depends_on:
       - db
     profiles:
@@ -80,6 +82,7 @@ services:
       TZ: ${TIMEZONE}
       DEBIAN_FRONTEND: noninteractive
     volumes:
+      - ./docker/db/initdb.d:/docker-entrypoint-initdb.d
       - db_data:/var/lib/mariadb
     ports:
       - 127.0.0.1:${DOCKER_DB_PORT}:3306
@@ -106,6 +109,19 @@ services:
       - core
     restart: ${RESTART}
 
+  clickhouse:
+    image: yandex/clickhouse-server
+    container_name: clickhouse-server
+    ports:
+      - '8123:8123'
+      - '9000:9000'
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile: 262144
+    networks:
+      - default
+
   phpmyadmin:
     platform: ${BUILDPLATFORM}
     image: phpmyadmin:latest
@@ -128,6 +144,7 @@ services:
 volumes:
   db_data:
   rabbitmq_data:
+  clickhouse_data:
 
 networks:
   web:

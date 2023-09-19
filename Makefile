@@ -18,4 +18,13 @@ composer-install:
 cp-env:
 	@test -f .env || cp .env-dist .env
 
-install: cp-env up composer-install
+install: cp-env up composer-install sleep
+
+sleep:
+	@sleep 30
+
+make sender:
+	@docker compose exec --user=www-data supervisor php console/sender.php
+
+make receive:
+	@docker compose exec --user=www-data supervisor php console/receive.php

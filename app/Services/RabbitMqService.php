@@ -16,32 +16,19 @@ class RabbitMqService
      */
     public function send(string $url): void
     {
-        $content = new UrlTransferDto($url, (new DateTime)->getTimestamp());
+        $content = new UrlTransferDto($url, (new DateTime())->getTimestamp());
 
         $connection = Kernel::rabbitMq();
         $connection->sendMessage($content);
     }
 
-    public function receive(): void
+    /**
+     * @throws Exception
+     */
+    public function close(): void
     {
-        /**
-         * @throws Exception
-         */
-        $callback = function($msg) {
-            $content = new ContentService();
-            $urlTransferDto = unserialize($msg->body);
-            if($urlTransferDto instanceof UrlTransferDto) {
-                $content->addContent($urlTransferDto);
-            }
-        };
-
         $connection = Kernel::rabbitMq();
-
-        $connection->channel->basic_qos(null, 1, null);
-        $connection->channel->basic_consume('kma', '', false, false, false, false, $callback);
-
-        while(count($connection->channel->callbacks)) {
-            $connection->channel->wait();
-        }
+        $connection->channel()->close();
+        $connection->close();
     }
 }

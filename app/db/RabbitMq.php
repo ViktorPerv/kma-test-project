@@ -26,7 +26,7 @@ class RabbitMq
             $this->channel = $this->connection->channel();
             $this->channel->queue_declare('kma', false, true, false, false);
         } catch (Exception $exception) {
-            die('Подключение RabbitMq не установилось: ' . $exception->getMessage());
+            die('Подключение RabbitMq не установилось: ' . $exception->getMessage()) . PHP_EOL;
         }
     }
 
@@ -43,6 +43,6 @@ class RabbitMq
 
         echo '[x] Sent' . PHP_EOL;
 
-        $this->channel->basic_publish($msg,'', 'kma');
+        $this->channel->basic_publish($msg, '', 'kma');
     }
 }

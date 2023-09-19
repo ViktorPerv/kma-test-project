@@ -1,8 +1,6 @@
 <?php
 
-use App\Dtos\UrlTransferDto;
 use App\Http\Kernel;
-use App\Services\ContentService;
 use App\Services\RabbitMqService;
 use Dotenv\Dotenv;
 
@@ -15,14 +13,14 @@ $shallStopWorking = false;
 
 // сигнал об остановке от supervisord
 pcntl_signal(SIGTERM, function () use (&$shallStopWorking) {
-    echo "Received SIGTERM\n";
     $shallStopWorking = true;
+    echo "Received SIGTERM\n";
 });
 
 // обработчик для ctrl+c
-pcntl_signal(SIGINT,  function () use (&$shallStopWorking) {
-    echo "Received SIGINT\n";
+pcntl_signal(SIGINT, function () use (&$shallStopWorking) {
     $shallStopWorking = true;
+    echo "Received SIGINT\n";
 });
 
 echo "Started\n";
@@ -41,20 +39,29 @@ while (!$shallStopWorking) {
 
     foreach ($fileObj as $line) {
         echo 'Отправка данных в Rabbit' . PHP_EOL;
-        $waitSeconds = rand(10,100);
-        echo 'Ожидание ' . $waitSeconds . ' секунд';
+        $waitSeconds = rand(10, 100);
+        echo 'Ожидание ' . $waitSeconds . ' секунд' . PHP_EOL;
         sleep($waitSeconds);
         try {
             $service->send($line);
+            echo 'Url: ' . $line . ' отправлен' . PHP_EOL;
         } catch (Exception $e) {
-            die('Отправка данных не удалась: ' . $e->getMessage());
+            die('Отправка данных не удалась: ' . $e->getMessage()) . PHP_EOL;
         }
     }
 
-    $service->receive();
+    try {
+        $service->close();
+    } catch (Exception $e) {
+        die('Не удалось закрыть коннект к RabbitMq ' . $e->getMessage());
+    }
+
+    echo 'Все данные отправлены' . PHP_EOL;
 
     // обработаем сигналы в конце итерации
     pcntl_signal_dispatch();
+
+    die();
 }
 
-die("Finished\n");
+echo "Finished\n";

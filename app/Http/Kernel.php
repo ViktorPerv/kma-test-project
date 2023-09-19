@@ -8,6 +8,7 @@ use App\db\Db;
 use App\db\RabbitMq;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
+
 use function FastRoute\simpleDispatcher;
 
 class Kernel
